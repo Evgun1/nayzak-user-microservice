@@ -1,0 +1,63 @@
+generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+    provider  = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DIRECT_DATABASE_URL")
+}
+
+model Customers {
+    id            Int         @id @default(autoincrement())
+    firstName     String      @db.Text
+    lastName      String      @db.Text
+    phone         Int         @default(0) @db.Integer
+    Cart          Cart[]
+    Wishlist      Wishlist[]
+    Credentials   Credentials @relation(fields: [credentialsId], references: [id], onDelete: Cascade)
+    credentialsId Int         @unique
+    Addresses     Addresses[]
+}
+
+enum Role {
+    admin
+    client
+}
+
+model Addresses {
+    id          Int       @id @default(autoincrement())
+    city        String    @db.Text
+    street      String    @db.Text
+    postalCode  Int       @db.Integer
+    customersId Int       @db.Integer
+    Customers   Customers @relation(fields: [customersId], references: [id])
+}
+
+model Credentials {
+    id        Int         @id @default(autoincrement())
+    email     String      @unique @db.Text
+    password  String      @db.Text
+    role      Role        @default(client)
+    // isActive       Boolean     @default(false)
+    // activationLink String?
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+    Customers Customers[]
+}
+
+model Cart {
+    id          Int       @id @default(autoincrement())
+    amount      Int
+    Customers   Customers @relation(fields: [customersId], references: [id])
+    customersId Int
+    productsId  Int
+}
+
+model Wishlist {
+    id          Int       @id @default(autoincrement())
+    Customers   Customers @relation(fields: [customersId], references: [id])
+    customersId Int
+    productsId  Int
+}
